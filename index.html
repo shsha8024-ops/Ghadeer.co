@@ -3,15 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Ghadeer Accounts | غدير للحسابات — Login Edition</title>
+  <title>Ghadeer Accounts | غدير للحسابات</title>
   <link rel="stylesheet" href="assets/css/theme.css">
   <link rel="manifest" href="manifest.json">
-  <script defer src="assets/js/crypto.js"></script>
   <script defer src="assets/js/app.js"></script>
   <style>
     @media print{
       body{background:#fff;color:#000}
-      header,#loginGate,.drawer .actions #d_close,.drawer .actions #d_export,.no-print{display:none!important}
+      header,.drawer .actions #d_close,.drawer .actions #d_export,.no-print{display:none!important}
       .drawer{display:block!important; position:static; background:#fff}
       .drawer-panel{inset:auto; width:100%; border:0; padding:0}
       .print-header{display:flex!important; gap:12px; align-items:center; padding:12px 0; border-bottom:1px solid #ccc; margin-bottom:12px}
@@ -36,40 +35,19 @@
           <div class="muted">Bilingual • Secure Local • PWA • PDF Statements</div>
         </div>
       </div>
-      <nav id="tabs" class="hidden">
+      <nav id="tabs">
         <button class="tab active" data-tab="clients">👥 Clients / العملاء</button>
         <button class="tab" data-tab="transactions">🧾 Invoices & Payments / فواتير ودفعات</button>
         <button class="tab" data-tab="expenses">🛠️ Expenses / المصروفات</button>
         <button class="tab" data-tab="summary">📊 Company Summary / ملخص الشركة</button>
         <button class="tab" data-tab="settings">⚙️ Settings / الإعدادات</button>
-        <button class="tab logout no-print" id="logoutBtn">🚪 Logout / تسجيل الخروج</button>
+        <button class="tab logout no-print" id="resetDataBtn">🧹 Reset Data / تصفير البيانات</button>
       </nav>
     </div>
   </header>
 
-  <section id="loginGate" class="login-gate">
-    <div class="login-card glass">
-      <img src="assets/icons/brand-card.jpg" alt="Ghadeer Logistics Trans" class="login-logo"/>
-      <h2>Login / تسجيل الدخول</h2>
-      <p class="muted small">Your data stays on this device (AES-GCM encrypted). البيانات تبقى على هذا الجهاز.</p>
-      <div class="form">
-        <label>👤 Username / اسم المستخدم</label>
-        <input id="lg_user" placeholder="admin" autocomplete="username"/>
-        <label>🔑 Password / كلمة المرور</label>
-        <input id="lg_pass" type="password" placeholder="•••••" autocomplete="current-password"/>
-        <label class="remember"><input type="checkbox" id="lg_rem"> Remember me / تذكّرني</label>
-        <div class="actions">
-          <button class="btn primary" id="loginBtn">Login / دخول</button>
-        </div>
-        <div id="lg_error" class="error hidden">⚠️ Wrong username or password. اسم المستخدم أو كلمة المرور غير صحيحة.</div>
-      </div>
-      <div class="login-footer muted small">© 2025 Ghadeer Logistics Trans</div>
-    </div>
-    <div class="bg-blur"></div>
-  </section>
-
   <main class="container">
-    <section id="app" class="hidden">
+    <section id="app">
       <section id="clients" class="tab-pane">
         <div class="grid">
           <div class="card">

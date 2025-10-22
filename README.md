@@ -1,13 +1,13 @@
-# 🇮🇶🇪 Ghadeer Accounts – نظام غدير للحسابات | Login Edition
+# 🇮🇶🇪 Ghadeer Accounts – نظام غدير للحسابات | Open Edition
 
 ## 💎 المميزات
-- تسجيل دخول آمن: **admin / 12345**
-- تخزين محلي مشفر (AES-GCM + PBKDF2)
+- يعمل مباشرة بدون تسجيل دخول
+- تخزين محلي خاص على نفس المتصفح
 - واجهة ثنائية اللغة (عربي / إنجليزي)
 - طباعة كشف حساب PDF مع شعار الشركة
 - يعمل بدون إنترنت (PWA)
 - متجاوب مع الجوال والكمبيوتر
-- إمكانية تصدير نسخة مشفرة احتياطية
+- إمكانية تصدير نسخة احتياطية بصيغة JSON
 
 ## 📊 الوحدات
 - العملاء والفواتير
@@ -18,12 +18,11 @@
 - إعدادات العملة واللغة
 
 ## 🔒 الأمان
-جميع البيانات مشفرة ومحفوظة محليًا. لا يتم رفع أي بيانات إلى الإنترنت.
+جميع البيانات محفوظة محليًا على جهازك فقط بدون خوادم خارجية.
 
 ## 🚀 التشغيل محليًا
 1. افتح ملف `index.html` في المتصفح.
-2. أدخل بيانات الدخول (admin / 12345).
-3. أضف العملاء والفواتير والمصروفات.
+2. ابدأ فورًا بإضافة العملاء والفواتير والمصروفات.
 
 ## 🌐 النشر عبر GitHub Pages
 1. أنشئ مستودع جديد على GitHub.
@@ -36,21 +35,21 @@
 4. اضغط Save.
 ثم افتح الرابط:
 ```
-https://username.github.io/ghadeer-accounts-login/
+https://username.github.io/ghadeer-accounts/
 ```
 
 ---
 
-# 🇬🇧 Ghadeer Accounts – Login Edition
+# 🇬🇧 Ghadeer Accounts – Open Edition
 
 ## 🌟 Features
-- Secure Login: **admin / 12345**
-- Local AES-GCM encryption (offline & private)
+- Instant access with no login required
+- Private local-only storage in the browser
 - Bilingual interface (Arabic / English)
 - PDF Statements with company logo
 - PWA: Works offline and installable
 - Responsive design for mobile and desktop
-- Encrypted backup export
+- JSON backup export
 
 ## 💼 Modules
 - Clients & Invoices
@@ -61,12 +60,11 @@ https://username.github.io/ghadeer-accounts-login/
 - Settings
 
 ## 🔐 Security
-Data stays encrypted in your browser. No external server needed.
+Data never leaves your browser. No external server required.
 
 ## 🧭 Run Locally
 1. Open `index.html` in your browser.
-2. Log in with admin / 12345.
-3. Start adding clients, invoices, and expenses.
+2. Start adding clients, invoices, and expenses right away.
 
 ## 🌍 Deploy to GitHub Pages
 1. Create a new GitHub repository.
@@ -78,5 +76,5 @@ Data stays encrypted in your browser. No external server needed.
    ```
 4. Click Save. Your app will be live at:
 ```
-https://yourusername.github.io/ghadeer-accounts-login/
+https://yourusername.github.io/ghadeer-accounts/
 ```

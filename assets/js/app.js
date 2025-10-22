@@ -1,10 +1,7 @@
-// app.js — Login Edition (admin/12345) + secure local store + PDF print
-const LS_KEY = 'ghadeer.login.bundle.v1';
-const CREDS_KEY = 'ghadeer.login.creds.v1';
+// app.js — open edition (no login) + local store + PDF print
+const STORAGE_KEY = 'ghadeer.open.bundle.v1';
 const $ = s => document.querySelector(s);
 const $$ = s => Array.from(document.querySelectorAll(s));
-let decryptedState = null;
-let passwordCache = null;
 const defaultState = {
    clients: {},
    expenses: [],
@@ -13,79 +10,45 @@ const defaultState = {
       locale: 'en-US'
    }
 };
-const VALID_USER = 'admin';
-const VALID_PASS = '12345';
-function hasEncrypted() {
+const freshState = () => JSON.parse(JSON.stringify(defaultState));
+let decryptedState = freshState();
+function loadState() {
+   const raw = localStorage.getItem(STORAGE_KEY);
+   if (!raw)
+      return freshState();
    try {
-      return ! !localStorage.getItem(LS_KEY);
-   }catch {
-      return false;
-   }
-}
-async function saveEncrypted() {
-   if (!passwordCache || !decryptedState) 
-      return;
-   decryptedState._ts = Date.now();
-   const bundle = await GCrypto.aesEncryptJson(decryptedState, passwordCache);
-   localStorage.setItem(LS_KEY, JSON.stringify(bundle));
-}
-async function initIfNeeded(pass) {
-   if (!hasEncrypted()) {
-      const bundle = await GCrypto.aesEncryptJson(defaultState, pass);
-      localStorage.setItem(LS_KEY, JSON.stringify(bundle));
-   }
-}
-async function unlock(pass) {
-   const raw = localStorage.getItem(LS_KEY);
-   if (!raw) 
-      throw new Error('No DB');
-   const bundle = JSON.parse(raw);
-   decryptedState = await GCrypto.aesDecryptJson(bundle, pass);
-   passwordCache = pass;
-}
-window.addEventListener('DOMContentLoaded', async () => {
-   // Auto login if remembered
-   try {
-      const remember = JSON.parse(localStorage.getItem(CREDS_KEY) || 'null');
-      if (remember && remember.user === VALID_USER && remember.pass === VALID_PASS) {
-         await initIfNeeded(VALID_PASS);
-         await unlock(VALID_PASS);
-         afterLoginUI();
-         return;
-      }
-   }catch{}
-   // Show gate
-   $('#loginGate').classList.remove('hidden');
-   $('#lg_user').value = VALID_USER;
-   $('#lg_pass').value = '';
-   $('#lg_rem').checked = true;
-   $('#loginBtn').addEventListener('click', async () => {
-      const u = ($('#lg_user').value || '').trim();
-      const p = ($('#lg_pass').value || '').trim();
-      if (u !== VALID_USER || p !== VALID_PASS) {
-         $('#lg_error').classList.remove('hidden');
-         return;
-      }
-      try {
-         await initIfNeeded(p);
-         await unlock(p);
-         if ($('#lg_rem').checked) {
-            localStorage.setItem(CREDS_KEY, JSON.stringify({
-               user: u,
-               pass: p
-            }));
-         } else {
-            localStorage.removeItem(CREDS_KEY);
+      const parsed = JSON.parse(raw);
+      return {
+         ...freshState(),
+         ...parsed,
+         clients: parsed.clients || {},
+         expenses: parsed.expenses || [],
+         settings: {
+            ...freshState().settings,
+            ...(parsed.settings || {})
          }
-         afterLoginUI();
-      } catch (e) {
-         console.error(e);
-         $('#lg_error').classList.remove('hidden');
-      }
-   });
+      };
+   } catch (err) {
+      console.error('Failed to parse saved data', err);
+      return freshState();
+   }
+}
+async function saveState() {
+   try {
+      const snapshot = {
+         ...decryptedState,
+         _ts: Date.now()
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
+   } catch (err) {
+      console.error('Failed to save data', err);
+   }
+}
+window.addEventListener('DOMContentLoaded', () => {
+   decryptedState = loadState();
+   initializeApp();
 });
-function afterLoginUI() {
-   $('#loginGate').classList.add('hidden');
+function initializeApp() {
    $('#tabs').classList.remove('hidden');
    $('#app').classList.remove('hidden');
    $('#t_date').value = today();
@@ -94,12 +57,16 @@ function afterLoginUI() {
    $('#currencyCode').value = decryptedState.settings.currency || 'USD';
    $('#localeSelect').value = decryptedState.settings.locale || 'en-US';
    renderAll();
+   saveState();
 }
-// Logout
-$('#logoutBtn') ? .addEventListener('click', () => {
-   $('#tabs').classList.add('hidden');
-   $('#app').classList.add('hidden');
-   $('#loginGate').classList.remove('hidden');
+// Reset stored data
+$('#resetDataBtn')?.addEventListener('click', () => {
+   if (!confirm('Clear all saved data on this device? مسح جميع البيانات المحفوظة على هذا الجهاز؟'))
+      return;
+   localStorage.removeItem(STORAGE_KEY);
+   decryptedState = freshState();
+   initializeApp();
+   saveState();
 });
 // Helpers
 function fmt(n) {
@@ -141,9 +108,9 @@ function safeFile(s = '') {
    return s.replace(/[^-\w]+/g, '_');
 }
 // Tabs
-$$('#tabs .tab').forEach(btn => {
+$$('#tabs .tab[data-tab]').forEach(btn => {
    btn.addEventListener('click', () => {
-      $$('#tabs .tab').forEach(b => b.classList.remove('active'));
+      $$('#tabs .tab[data-tab]').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       const id = btn.dataset.tab;
       $$('.tab-pane').forEach(p => p.classList.add('hidden'));
@@ -192,7 +159,7 @@ $('#addClientBtn').addEventListener('click', async () => {
       decryptedState.clients[name].phone = phone || decryptedState.clients[name].phone;
       decryptedState.clients[name].city = city || decryptedState.clients[name].city;
    }
-   await saveEncrypted();
+   await saveState();
    $('#c_name').value = '';
    $('#c_phone').value = '';
    $('#c_city').value = '';
@@ -266,19 +233,19 @@ async function deleteClient(name) {
    if (!confirm('Delete client and all operations? حذف العميل وكل عملياته؟')) 
       return;
    delete decryptedState.clients[name];
-   await saveEncrypted();
+   await saveState();
    renderClients();
    syncClientSelects();
    renderSummary();
 }
 function quickInvoice(name) {
    $('#t_client').value = name;
-   $$('#tabs .tab').find(b => b.dataset.tab === 'transactions').click();
+   $$('#tabs .tab[data-tab]').find(b => b.dataset.tab === 'transactions')?.click();
    $('#t_desc').focus();
 }
 function quickPayment(name) {
    $('#p_client').value = name;
-   $$('#tabs .tab').find(b => b.dataset.tab === 'transactions').click();
+   $$('#tabs .tab[data-tab]').find(b => b.dataset.tab === 'transactions')?.click();
    $('#p_desc').focus();
 }
 $('#addInvoiceBtn').addEventListener('click', async () => {
@@ -292,7 +259,7 @@ $('#addInvoiceBtn').addEventListener('click', async () => {
       type: 'invoice',
       desc, amount, date
    });
-   await saveEncrypted();
+   await saveState();
    $('#t_desc').value = '';
    $('#t_amount').value = '';
    $('#t_date').value = '';
@@ -311,7 +278,7 @@ $('#addPaymentBtn').addEventListener('click', async () => {
       type: 'payment',
       desc, amount, date
    });
-   await saveEncrypted();
+   await saveState();
    $('#p_desc').value = '';
    $('#p_amount').value = '';
    $('#p_date').value = '';
@@ -327,7 +294,7 @@ $('#addExpenseBtn').addEventListener('click', async () => {
       id: uid(),
       desc, amount, date
    });
-   await saveEncrypted();
+   await saveState();
    $('#e_desc').value = '';
    $('#e_amount').value = '';
    $('#e_date').value = '';
@@ -356,7 +323,7 @@ async function deleteExpense(id) {
    if (!confirm('Delete expense? حذف المصروف؟')) 
       return;
    decryptedState.expenses = decryptedState.expenses.filter(x => x.id !== id);
-   await saveEncrypted();
+   await saveState();
    renderExpenses();
    renderSummary();
 }
@@ -396,22 +363,23 @@ function renderSummary() {
 $('#saveSettingsBtn').addEventListener('click', async () => {
    decryptedState.settings.currency = $('#currencyCode').value.trim() || 'USD';
    decryptedState.settings.locale = $('#localeSelect').value || 'en-US';
-   await saveEncrypted();
+   await saveState();
    renderClients();
    renderExpenses();
    renderSummary();
    alert('Saved / تم الحفظ');
 });
-$('#exportAllBtn').addEventListener('click', () => {
-   const bundle = localStorage.getItem(LS_KEY);
-   if (!bundle) 
+$('#exportAllBtn').addEventListener('click', async () => {
+   await saveState();
+   const bundle = localStorage.getItem(STORAGE_KEY);
+   if (!bundle)
       return alert('No data to export / لا توجد بيانات');
    const a = document.createElement('a');
    const url = URL.createObjectURL(new Blob([bundle], {
       type: 'application/json;charset=utf-8'
    }));
    a.href = url;
-   a.download = 'ghadeer_encrypted_backup.json';
+   a.download = 'ghadeer_backup.json';
    document.body.appendChild(a);
    a.click();
    a.remove();
@@ -524,7 +492,7 @@ async function editOp(name, opId) {
    op.desc = newDesc;
    op.amount = newAmount;
    op.date = newDate;
-   await saveEncrypted();
+   await saveState();
    renderClients();
    renderStatement(name);
    renderSummary();
@@ -534,7 +502,7 @@ async function deleteOp(name, opId) {
       return;
    const c = decryptedState.clients[name];
    c.ledger = c.ledger.filter(x => x.id !== opId);
-   await saveEncrypted();
+   await saveState();
    renderClients();
    renderStatement(name);
    renderSummary();

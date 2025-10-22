@@ -36,7 +36,7 @@
           <div class="muted">Bilingual • Secure Local • PWA • PDF Statements</div>
         </div>
       </div>
-      <nav id="tabs" class="hidden">
+      <nav id="tabs">
         <button class="tab active" data-tab="clients">👥 Clients / العملاء</button>
         <button class="tab" data-tab="transactions">🧾 Invoices & Payments / فواتير ودفعات</button>
         <button class="tab" data-tab="expenses">🛠️ Expenses / المصروفات</button>
@@ -47,29 +47,10 @@
     </div>
   </header>
 
-  <section id="loginGate" class="login-gate">
-    <div class="login-card glass">
-      <img src="assets/icons/brand-card.jpg" alt="Ghadeer Logistics Trans" class="login-logo"/>
-      <h2>Login / تسجيل الدخول</h2>
-      <p class="muted small">Your data stays on this device (AES-GCM encrypted). البيانات تبقى على هذا الجهاز.</p>
-      <div class="form">
-        <label>👤 Username / اسم المستخدم</label>
-        <input id="lg_user" placeholder="admin" autocomplete="username"/>
-        <label>🔑 Password / كلمة المرور</label>
-        <input id="lg_pass" type="password" placeholder="•••••" autocomplete="current-password"/>
-        <label class="remember"><input type="checkbox" id="lg_rem"> Remember me / تذكّرني</label>
-        <div class="actions">
-          <button class="btn primary" id="loginBtn">Login / دخول</button>
-        </div>
-        <div id="lg_error" class="error hidden">⚠️ Wrong username or password. اسم المستخدم أو كلمة المرور غير صحيحة.</div>
-      </div>
-      <div class="login-footer muted small">© 2025 Ghadeer Logistics Trans</div>
-    </div>
-    <div class="bg-blur"></div>
-  </section>
+  
 
   <main class="container">
-    <section id="app" class="hidden">
+    <section id="app">
       <section id="clients" class="tab-pane">
         <div class="grid">
           <div class="card">

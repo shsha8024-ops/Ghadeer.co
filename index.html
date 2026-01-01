@@ -5,9 +5,9 @@
   <title>Ghadeer Accounts</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    body{margin:0;font-family:Tahoma;background:#0b1224;color:#fff}
-    .hidden{display:none}
-    header{background:#11182f;padding:10px;display:flex;gap:6px}
+    body{margin:0;font-family:Tahoma,Arial;background:#0b1224;color:#fff}
+    .hidden{display:none!important}
+    header{background:#11182f;padding:10px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
     section{padding:12px}
     button,input,select{padding:8px;border-radius:8px;border:0}
     button{background:#2b5cff;color:#fff;cursor:pointer}
@@ -15,7 +15,7 @@
     input,select{background:#0b1224;color:#fff;border:1px solid #333}
     .card{background:#11182f;border-radius:10px;padding:12px;margin-bottom:12px}
     table{width:100%;border-collapse:collapse}
-    td,th{border-bottom:1px solid #333;padding:6px}
+    td,th{border-bottom:1px solid #333;padding:6px;text-align:right}
     .login{position:fixed;inset:0;background:#0b1224;display:flex;align-items:center;justify-content:center}
   </style>
 </head>
@@ -24,12 +24,12 @@
 
 <!-- LOGIN -->
 <div id="loginGate" class="login">
-  <div class="card" style="width:300px">
-    <h3>🔐 Login</h3>
+  <div class="card" style="width:320px">
+    <h3 style="margin:0 0 8px">🔐 Login</h3>
     <input id="lg_user" placeholder="admin"><br><br>
     <input id="lg_pass" type="password" placeholder="admin"><br><br>
     <button id="loginBtn">Login</button>
-    <div id="lg_error" class="hidden" style="color:#ff6b6b">خطأ</div>
+    <div id="lg_error" class="hidden" style="color:#ff6b6b;margin-top:8px">❌ خطأ</div>
   </div>
 </div>
 
@@ -45,43 +45,211 @@
 <!-- APP -->
 <main id="app" class="hidden">
 
-<section id="clients">
-  <div class="card">
-    <input id="c_name" placeholder="Name">
-    <button id="addClientBtn">Add Client</button>
-  </div>
-  <table><tbody id="clientRows"></tbody></table>
-</section>
+  <section id="clients">
+    <div class="card">
+      <h3 style="margin:0 0 8px">Add Client</h3>
+      <input id="c_name" placeholder="Name">
+      <input id="c_phone" placeholder="Phone">
+      <input id="c_city" placeholder="City">
+      <button id="addClientBtn">Add Client</button>
+    </div>
+    <div class="card">
+      <h3 style="margin:0 0 8px">Clients</h3>
+      <table><tbody id="clientRows"></tbody></table>
+    </div>
+  </section>
 
-<section id="invoices" class="hidden">
-  <div class="card">
-    <select id="i_client"></select>
-    <input id="i_desc" placeholder="Description">
-    <input id="i_amount" type="number">
-    <button id="addInvoiceBtn">Add Invoice</button>
-  </div>
-  <table><tbody id="invoiceRows"></tbody></table>
-</section>
+  <section id="invoices" class="hidden">
+    <div class="card">
+      <h3 style="margin:0 0 8px">Add Invoice</h3>
+      <select id="i_client"></select>
+      <input id="i_desc" placeholder="Description">
+      <input id="i_amount" type="number" placeholder="Amount">
+      <button id="addInvoiceBtn">Add Invoice</button>
+    </div>
+    <div class="card">
+      <h3 style="margin:0 0 8px">Invoices</h3>
+      <table><tbody id="invoiceRows"></tbody></table>
+    </div>
+  </section>
 
-<section id="expenses" class="hidden">
-  <div class="card">
-    <input id="e_desc" placeholder="Description">
-    <input id="e_amount" type="number">
-    <button id="addExpenseBtn">Add Expense</button>
-  </div>
-  <table><tbody id="expenseRows"></tbody></table>
-</section>
+  <section id="expenses" class="hidden">
+    <div class="card">
+      <h3 style="margin:0 0 8px">Add Expense</h3>
+      <input id="e_desc" placeholder="Description">
+      <input id="e_amount" type="number" placeholder="Amount">
+      <button id="addExpenseBtn">Add Expense</button>
+    </div>
+    <div class="card">
+      <h3 style="margin:0 0 8px">Expenses</h3>
+      <table><tbody id="expenseRows"></tbody></table>
+    </div>
+  </section>
 
-<section id="summary" class="hidden">
-  <div class="card">
-    <div>Total Invoices: <span id="s_in"></span></div>
-    <div>Total Expenses: <span id="s_ex"></span></div>
-    <div>Net: <span id="s_net"></span></div>
-  </div>
-</section>
+  <section id="summary" class="hidden">
+    <div class="card">
+      <h3 style="margin:0 0 8px">Summary</h3>
+      <div>Total Invoices: <span id="s_in">0</span></div>
+      <div>Total Expenses: <span id="s_ex">0</span></div>
+      <div>Net: <span id="s_net">0</span></div>
+    </div>
+  </section>
 
 </main>
 
-<script type="module" src="app.js"></script>
+<script>
+"use strict";
+
+// ====== CONFIG ======
+const USER = "admin";
+const PASS = "admin";
+const LS = "ga_data_simple";
+
+// ====== STATE ======
+let data = load();
+
+// ====== DOM HELPERS ======
+const $ = (id) => document.getElementById(id);
+
+// ====== BOOT ======
+document.addEventListener("DOMContentLoaded", () => {
+  // Login
+  $("loginBtn").addEventListener("click", onLogin);
+  $("lg_pass").addEventListener("keydown", (e)=>{ if(e.key==="Enter") onLogin(); });
+
+  // Logout
+  $("logoutBtn").addEventListener("click", () => location.reload());
+
+  // Tabs
+  document.querySelectorAll("[data-tab]").forEach(btn=>{
+    btn.addEventListener("click", ()=> showTab(btn.dataset.tab));
+  });
+
+  // Actions
+  $("addClientBtn").addEventListener("click", addClient);
+  $("addInvoiceBtn").addEventListener("click", addInvoice);
+  $("addExpenseBtn").addEventListener("click", addExpense);
+
+  // Default tab
+  showTab("clients");
+});
+
+// ====== LOGIN ======
+function onLogin(){
+  const u = $("lg_user").value.trim();
+  const p = $("lg_pass").value;
+  if(u === USER && p === PASS){
+    $("loginGate").classList.add("hidden");
+    $("appHeader").classList.remove("hidden");
+    $("app").classList.remove("hidden");
+    $("lg_error").classList.add("hidden");
+    render();
+  } else {
+    $("lg_error").classList.remove("hidden");
+  }
+}
+
+// ====== TABS ======
+function showTab(tabId){
+  document.querySelectorAll("main section").forEach(s=> s.classList.add("hidden"));
+  $(tabId).classList.remove("hidden");
+}
+
+// ====== CRUD ======
+function addClient(){
+  const name = $("c_name").value.trim();
+  if(!name) return alert("اكتب اسم العميل");
+  data.clients.push({
+    id: Date.now(),
+    name,
+    phone: $("c_phone").value.trim(),
+    city: $("c_city").value.trim()
+  });
+  $("c_name").value = $("c_phone").value = $("c_city").value = "";
+  save();
+  render();
+}
+
+function addInvoice(){
+  if(data.clients.length === 0) return alert("أضف عميل أولاً");
+  const clientId = $("i_client").value;
+  const desc = $("i_desc").value.trim();
+  const amount = Number($("i_amount").value);
+
+  if(!clientId) return alert("اختر عميل");
+  if(!desc) return alert("اكتب وصف");
+  if(!Number.isFinite(amount) || amount <= 0) return alert("المبلغ لازم يكون موجب");
+
+  data.invoices.push({ id: Date.now(), clientId, desc, amount });
+  $("i_desc").value = "";
+  $("i_amount").value = "";
+  save();
+  render();
+}
+
+function addExpense(){
+  const desc = $("e_desc").value.trim();
+  const amount = Number($("e_amount").value);
+
+  if(!desc) return alert("اكتب وصف المصروف");
+  if(!Number.isFinite(amount) || amount <= 0) return alert("المبلغ لازم يكون موجب");
+
+  data.expenses.push({ id: Date.now(), desc, amount });
+  $("e_desc").value = "";
+  $("e_amount").value = "";
+  save();
+  render();
+}
+
+// ====== RENDER ======
+function render(){
+  // Clients table
+  $("clientRows").innerHTML = data.clients.map(c =>
+    `<tr><td>${escapeHtml(c.name)}</td><td>${escapeHtml(c.phone||"")}</td><td>${escapeHtml(c.city||"")}</td></tr>`
+  ).join("") || `<tr><td colspan="3">لا يوجد</td></tr>`;
+
+  // Client select
+  $("i_client").innerHTML = `<option value="">اختر عميل...</option>` +
+    data.clients.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join("");
+
+  // Invoices
+  const clientMap = new Map(data.clients.map(c=>[String(c.id), c.name]));
+  $("invoiceRows").innerHTML = data.invoices.map(i =>
+    `<tr>
+      <td>${escapeHtml(clientMap.get(String(i.clientId)) || "")}</td>
+      <td>${escapeHtml(i.desc)}</td>
+      <td>${i.amount}</td>
+    </tr>`
+  ).join("") || `<tr><td colspan="3">لا يوجد</td></tr>`;
+
+  // Expenses
+  $("expenseRows").innerHTML = data.expenses.map(e =>
+    `<tr><td>${escapeHtml(e.desc)}</td><td>${e.amount}</td></tr>`
+  ).join("") || `<tr><td colspan="2">لا يوجد</td></tr>`;
+
+  // Summary
+  const tin = data.invoices.reduce((s,x)=>s+(+x.amount||0),0);
+  const tex = data.expenses.reduce((s,x)=>s+(+x.amount||0),0);
+  $("s_in").textContent = tin;
+  $("s_ex").textContent = tex;
+  $("s_net").textContent = tin - tex;
+}
+
+// ====== STORAGE ======
+function save(){ localStorage.setItem(LS, JSON.stringify(data)); }
+function load(){
+  try { return JSON.parse(localStorage.getItem(LS)) || {clients:[], invoices:[], expenses:[]}; }
+  catch { return {clients:[], invoices:[], expenses:[]}; }
+}
+
+// ====== UTIL ======
+function escapeHtml(s){
+  return String(s ?? "")
+    .replaceAll("&","&amp;").replaceAll("<","&lt;")
+    .replaceAll(">","&gt;").replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+</script>
+
 </body>
 </html>

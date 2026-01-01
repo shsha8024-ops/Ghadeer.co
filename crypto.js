@@ -1,31 +1,32 @@
-// crypto.js — PBKDF2 + AES-GCM using password
-async function deriveKey(password, salt, iterations=200000){
-  const enc = new TextEncoder();
-  const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
-  return crypto.subtle.deriveKey(
-    { name:'PBKDF2', salt, iterations, hash:'SHA-256' },
-    keyMaterial,
-    { name:'AES-GCM', length:256 },
-    false,
-    ['encrypt','decrypt']
-  );
+:root{
+  --bg:#f5f7fb;
+  --card:#fff;
+  --primary:#4f7cff;
+  --danger:#ff5a5a;
 }
-function b64enc(buf){ return btoa(String.fromCharCode(...new Uint8Array(buf))); }
-function b64dec(b64){ return Uint8Array.from(atob(b64), c=>c.charCodeAt(0)); }
-async function aesEncryptJson(obj, secret){
-  const iv = crypto.getRandomValues(new Uint8Array(12));
-  const salt = crypto.getRandomValues(new Uint8Array(16));
-  const iterations = 200000;
-  const key = await deriveKey(secret, salt, iterations);
-  const data = new TextEncoder().encode(JSON.stringify(obj));
-  const cipher = await crypto.subtle.encrypt({name:'AES-GCM', iv}, key, data);
-  return { iv:b64enc(iv), salt:b64enc(salt), iterations, cipher:b64enc(cipher) };
+
+body{margin:0;font-family:Tahom;background:var(--bg)}
+.hidden{display:none}
+header{background:#fff;padding:10px;display:flex;justify-content:space-between}
+nav button{margin:2px;padding:8px;border-radius:8px;border:1px solid #ddd}
+nav button.active{background:var(--primary);color:#fff}
+.card{background:var(--card);padding:16px;margin:12px;border-radius:14px}
+input,select{width:100%;padding:10px;margin-bottom:8px}
+button.primary{background:var(--primary);color:#fff;border:0;padding:10px}
+button.danger{background:var(--danger);color:#fff;border:0;padding:8px}
+table{width:100%}
+td{padding:8px;border-bottom:1px solid #eee}
+
+/* Login */
+.login,.splash{
+  position:fixed;inset:0;
+  display:flex;align-items:center;justify-content:center;
 }
-async function aesDecryptJson(bundle, secret){
-  const iv = b64dec(bundle.iv); const salt = b64dec(bundle.salt);
-  const key = await deriveKey(secret, salt, bundle.iterations||200000);
-  const cipher = b64dec(bundle.cipher);
-  const plain = await crypto.subtle.decrypt({name:'AES-GCM', iv}, key, cipher);
-  return JSON.parse(new TextDecoder().decode(plain));
+.splash{
+  background:linear-gradient(135deg,#4f7cff,#6d5cff);
+  color:#fff;
+  z-index:9999;
+  animation:fadeOut .6s ease forwards;
+  animation-delay:1.4s;
 }
-window.GCrypto = { aesEncryptJson, aesDecryptJson };
+@keyframes fadeOut{to{opacity:0;visibility:hidden}}

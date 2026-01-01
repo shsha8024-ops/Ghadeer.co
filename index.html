@@ -4,79 +4,19 @@
   <meta charset="UTF-8" />
   <title>Ghadeer Accounts</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-
   <style>
-    body {
-      margin: 0;
-      font-family: Tahoma, Arial, sans-serif;
-      background: #0b1224;
-      color: #fff;
-    }
-    .hidden { display: none; }
-
-    header {
-      background: #11182f;
-      padding: 10px;
-      display: flex;
-      gap: 6px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
-    section { padding: 12px; }
-
-    button, input, select {
-      padding: 8px;
-      border-radius: 8px;
-      border: 0;
-    }
-
-    button {
-      cursor: pointer;
-      background: #2b5cff;
-      color: #fff;
-    }
-
-    button.danger { background: #ff6b6b; }
-    button.gray { background: #444; }
-
-    input, select {
-      background: #0b1224;
-      color: #fff;
-      border: 1px solid #333;
-    }
-
-    .card {
-      background: #11182f;
-      border-radius: 10px;
-      padding: 12px;
-      margin-bottom: 12px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    td, th {
-      border-bottom: 1px solid #333;
-      padding: 6px;
-      text-align: right;
-    }
-
-    h3 {
-      margin: 0 0 8px;
-    }
-
-    /* LOGIN */
-    .login {
-      position: fixed;
-      inset: 0;
-      background: #0b1224;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+    body{margin:0;font-family:Tahoma;background:#0b1224;color:#fff}
+    .hidden{display:none}
+    header{background:#11182f;padding:10px;display:flex;gap:6px}
+    section{padding:12px}
+    button,input,select{padding:8px;border-radius:8px;border:0}
+    button{background:#2b5cff;color:#fff;cursor:pointer}
+    button.danger{background:#ff6b6b}
+    input,select{background:#0b1224;color:#fff;border:1px solid #333}
+    .card{background:#11182f;border-radius:10px;padding:12px;margin-bottom:12px}
+    table{width:100%;border-collapse:collapse}
+    td,th{border-bottom:1px solid #333;padding:6px}
+    .login{position:fixed;inset:0;background:#0b1224;display:flex;align-items:center;justify-content:center}
   </style>
 </head>
 
@@ -89,121 +29,59 @@
     <input id="lg_user" placeholder="admin"><br><br>
     <input id="lg_pass" type="password" placeholder="admin"><br><br>
     <button id="loginBtn">Login</button>
-    <div id="lg_error" class="hidden" style="color:#ff6b6b;margin-top:8px">
-      خطأ في تسجيل الدخول
-    </div>
+    <div id="lg_error" class="hidden" style="color:#ff6b6b">خطأ</div>
   </div>
 </div>
 
 <!-- HEADER -->
 <header id="appHeader" class="hidden">
-  <button onclick="document.getElementById('clients').classList.remove('hidden');
-                   document.getElementById('invoices').classList.add('hidden');
-                   document.getElementById('expenses').classList.add('hidden');
-                   document.getElementById('summary').classList.add('hidden');">
-    Clients
-  </button>
-
-  <button onclick="document.getElementById('clients').classList.add('hidden');
-                   document.getElementById('invoices').classList.remove('hidden');
-                   document.getElementById('expenses').classList.add('hidden');
-                   document.getElementById('summary').classList.add('hidden');">
-    Invoices
-  </button>
-
-  <button onclick="document.getElementById('clients').classList.add('hidden');
-                   document.getElementById('invoices').classList.add('hidden');
-                   document.getElementById('expenses').classList.remove('hidden');
-                   document.getElementById('summary').classList.add('hidden');">
-    Expenses
-  </button>
-
-  <button onclick="document.getElementById('clients').classList.add('hidden');
-                   document.getElementById('invoices').classList.add('hidden');
-                   document.getElementById('expenses').classList.add('hidden');
-                   document.getElementById('summary').classList.remove('hidden');">
-    Summary
-  </button>
-
-  <button id="undoBtn" class="gray">Undo</button>
+  <button data-tab="clients">Clients</button>
+  <button data-tab="invoices">Invoices</button>
+  <button data-tab="expenses">Expenses</button>
+  <button data-tab="summary">Summary</button>
   <button id="logoutBtn" class="danger">Logout</button>
 </header>
 
 <!-- APP -->
 <main id="app" class="hidden">
 
-  <!-- CLIENTS -->
-  <section id="clients">
-    <div class="card">
-      <h3>Add Client</h3>
-      <input id="c_name" placeholder="Name">
-      <input id="c_phone" placeholder="Phone">
-      <input id="c_city" placeholder="City">
-      <br><br>
-      <button id="addClientBtn">Add Client</button>
-    </div>
+<section id="clients">
+  <div class="card">
+    <input id="c_name" placeholder="Name">
+    <button id="addClientBtn">Add Client</button>
+  </div>
+  <table><tbody id="clientRows"></tbody></table>
+</section>
 
-    <div class="card">
-      <h3>Clients</h3>
-      <table>
-        <tbody id="clientRows"></tbody>
-      </table>
-    </div>
-  </section>
+<section id="invoices" class="hidden">
+  <div class="card">
+    <select id="i_client"></select>
+    <input id="i_desc" placeholder="Description">
+    <input id="i_amount" type="number">
+    <button id="addInvoiceBtn">Add Invoice</button>
+  </div>
+  <table><tbody id="invoiceRows"></tbody></table>
+</section>
 
-  <!-- INVOICES -->
-  <section id="invoices" class="hidden">
-    <div class="card">
-      <h3>Add Invoice</h3>
-      <select id="i_client"></select>
-      <input id="i_desc" placeholder="Description">
-      <input id="i_amount" type="number" placeholder="Amount">
-      <input id="i_date" type="date">
-      <br><br>
-      <button onclick="addInvoice()">Add Invoice</button>
-    </div>
+<section id="expenses" class="hidden">
+  <div class="card">
+    <input id="e_desc" placeholder="Description">
+    <input id="e_amount" type="number">
+    <button id="addExpenseBtn">Add Expense</button>
+  </div>
+  <table><tbody id="expenseRows"></tbody></table>
+</section>
 
-    <div class="card">
-      <input id="invSearch" placeholder="Search invoices">
-      <table>
-        <tbody id="invoiceRows"></tbody>
-      </table>
-    </div>
-  </section>
-
-  <!-- EXPENSES -->
-  <section id="expenses" class="hidden">
-    <div class="card">
-      <h3>Add Expense</h3>
-      <input id="e_desc" placeholder="Description">
-      <input id="e_amount" type="number" placeholder="Amount">
-      <input id="e_date" type="date">
-      <br><br>
-      <button onclick="addExpense()">Add Expense</button>
-    </div>
-
-    <div class="card">
-      <input id="expSearch" placeholder="Search expenses">
-      <table>
-        <tbody id="expenseRows"></tbody>
-      </table>
-    </div>
-  </section>
-
-  <!-- SUMMARY -->
-  <section id="summary" class="hidden">
-    <div class="card">
-      <h3>Summary</h3>
-      <div>Total Invoices: <span id="s_totalInvoices"></span></div>
-      <div>Total Expenses: <span id="s_totalExpenses"></span></div>
-      <div>Net Profit: <span id="s_netProfit"></span></div>
-    </div>
-  </section>
+<section id="summary" class="hidden">
+  <div class="card">
+    <div>Total Invoices: <span id="s_in"></span></div>
+    <div>Total Expenses: <span id="s_ex"></span></div>
+    <div>Net: <span id="s_net"></span></div>
+  </div>
+</section>
 
 </main>
 
-<!-- JS (Modules) -->
 <script type="module" src="app.js"></script>
-
 </body>
 </html>
